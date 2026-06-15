@@ -1,0 +1,169 @@
+import { GoogleLogin } from "@react-oauth/google";
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"; 
+import "../App.css";
+
+function Signup() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
+  
+  // States to handle the interactive custom username prompt
+  const [googleCredential, setGoogleCredential] = useState(null);
+  const [showUsernameForm, setShowUsernameForm] = useState(false);
+  const [customUsername, setCustomUsername] = useState("");
+
+  const navigate = useNavigate(); 
+
+  // Standard username/password registration form handler
+  const handleSignup = async () => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/signup/",
+        { username, password, role }
+      );
+      alert(response.data.message);
+      navigate("/"); 
+    } catch (error) {
+      console.error("Signup error context:", error);
+      alert("Registration failed.");
+    }
+  };
+
+  // Submits the custom username chosen during the Google authentication step
+  const handleCustomUsernameSubmit = async () => {
+    if (!customUsername.trim()) {
+      alert("Please enter a valid username.");
+      return;
+    }
+    await completeGoogleAuth(googleCredential, customUsername);
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    // Initial verification check to see if account exists or needs a username
+    await completeGoogleAuth(credentialResponse.credential, null);
+  };
+
+  const completeGoogleAuth = async (tokenString, usernameString) => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/google-auth/", {
+        token: tokenString,
+        role: role,
+        username: usernameString 
+      });
+
+      if (response.data.action === "require_username") {
+        // Stop and prompt for a custom username
+        setGoogleCredential(tokenString);
+        setShowUsernameForm(true);
+        return;
+      }
+
+      // Save tokens to browser local storage
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+      
+      // Save the correct display role to local storage before navigating
+      const displayRole = role === "user" ? "Member" : "Trainer";
+      localStorage.setItem("user_role", displayRole);
+
+      alert(response.data.action === "signup" ? "Account created successfully!" : "Welcome back!");
+      navigate("/profile");
+    } catch (error) {
+      console.error("Backend Google Auth Error:", error);
+      let detailedError = error.response?.data?.error || error.message;
+      alert("Google Auth Failed: " + detailedError);
+    }
+  };
+
+  return (
+    <div className="container">
+      <div className="card">
+        <h1>Fit<span>Track</span><div className="pulse-dot"></div></h1>
+        <p className="subtitle">Train Hard. Stay Consistent.</p>
+
+        {/* Conditional custom username onboarding view */}
+        {showUsernameForm ? (
+          <div style={{ animation: "fadeIn 0.3s ease", margin: "20px 0" }}>
+            <p style={{ color: "#94a3b8", fontSize: "14px", marginBottom: "15px" }}>
+              Welcome! Please choose a unique username to complete your FitTrack profile:
+            </p>
+            <input
+              type="text"
+              placeholder="Enter custom username"
+              value={customUsername}
+              onChange={(e) => setCustomUsername(e.target.value)}
+              style={{ borderColor: "#00f0ff" }}
+            />
+            <button onClick={handleCustomUsernameSubmit} style={{ marginTop: "15px" }}>
+              Complete Registration
+            </button>
+            <button 
+              onClick={() => setShowUsernameForm(false)} 
+              style={{ background: "transparent", color: "#64748b", border: "1px solid #1e293b", marginTop: "10px" }}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          /* Main registration card layout fields */
+          <>
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <div className="role-selection">
+              <label>
+                <input
+                  type="radio"
+                  name="signupRole"
+                  value="user"
+                  checked={role === "user"}
+                  onChange={() => setRole("user")}
+                />
+                <span className="role-card">Member</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="signupRole"
+                  value="trainer"
+                  checked={role === "trainer"}
+                  onChange={() => setRole("trainer")}
+                />
+                <span className="role-card">Trainer</span>
+              </label>
+            </div>
+
+            <div className="google-container">
+              <p className="google-divider">Or continue with Google</p>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess} 
+                onError={() => alert("Google Authentication Failed")}
+              />
+            </div>
+
+            <button onClick={handleSignup}>Signup</button>
+          </>
+        )}
+
+        <p className="auth-link" style={{ marginTop: "24px" }}>
+          Already have an account?<a href="/"> Login</a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default Signup;

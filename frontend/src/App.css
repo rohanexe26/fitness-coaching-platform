@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,700;1,700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  /* Deep obsidian night canvas with racing velocity ambient lighting */
+  background-color: #060913;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(0, 240, 255, 0.06) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.04) 0px, transparent 50%);
+  min-height: 100vh;
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAIN CONTAINER */
+.container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+/* MATTE DARK CONTROL CARD */
+.card {
+  width: 420px;
+  max-width: 100%;
+  background: #0d1220;
+  border: 1px solid #1e293b;
+  border-radius: 24px;
+  padding: 45px 35px;
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.7),
+    0 1px 0px rgba(255, 255, 255, 0.03) inset;
+  text-align: center;
+}
+
+/* MODERN BRAND TYPOGRAPHY */
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Dynamic Electric Cyber-Blue Accent */
+h1 span {
+  color: #00f0ff;
+  text-shadow: 0 0 25px rgba(0, 240, 255, 0.3);
+}
+
+/* Pure CSS minimalist pulsing performance dot icon */
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #00f0ff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00f0ff;
+  display: inline-block;
+}
+
+.subtitle {
+  color: #475569;
+  margin-bottom: 35px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+/* MONOLITH HIGH-PERFORMANCE INPUTS */
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 15px 18px;
+  margin: 10px 0;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  background: #070a12;
+  color: #ffffff;
+  font-size: 15px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s ease;
+}
+
+input::placeholder {
+  color: #334155;
+}
+
+input:focus {
+  outline: none;
+  border-color: #00f0ff;
+  background: #04060b;
+  box-shadow: 0 0 0 4px rgba(0, 240, 255, 0.12);
+}
+
+/* CAPSULE STYLE SEGMENTED TRACK GRIDS */
+.role-selection {
+  display: flex;
+  background: #070a12;
+  padding: 5px;
+  border-radius: 16px;
+  margin: 22px 0;
+  border: 1px solid #1e293b;
+  gap: 4px;
+}
+
+.role-selection label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.role-selection input[type="radio"] {
+  display: none !important;
+}
+
+.role-selection .role-card {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  user-select: none;
+}
+
+/* Cyber Blue Highlight Active States */
+.role-selection input[type="radio"]:checked + .role-card {
+  background: #1e293b;
+  color: #00f0ff;
+  font-weight: 700;
+}
+
+/* DISCRETE GOOGLE BLOCK DIVIDER */
+.google-container {
+  margin: 24px 0 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.google-divider {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  color: #334155;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.google-divider::before,
+.google-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #1e293b;
+}
+
+.google-divider::before { margin-right: 12px; }
+.google-divider::after { margin-left: 12px; }
+
+/* REACTION ACTION ACTION BUTTON */
+button {
+  width: 100%;
+  padding: 16px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #ffffff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  transition: all 0.25s ease;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* FOOTER NAVIGATIONAL STRIPS */
+.auth-link {
+  margin-top: 26px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.auth-link a {
+  color: #00f0ff;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+  transition: color 0.15s ease;
+}
+
+.auth-link a:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+/* MOBILE RESPONSIVE EDGES */
+@media(max-width: 480px) {
+  .card {
+    padding: 35px 24px;
+  }
+  h1 {
+    font-size: 1.9rem;
+  }
+}
