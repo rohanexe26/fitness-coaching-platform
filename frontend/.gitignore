@@ -21,10 +21,4 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw
-
-node_modules/
-*.pyc
-__pycache__/
-db.sqlite3
-.env
+*.sw?
