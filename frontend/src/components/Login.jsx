@@ -8,6 +8,8 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
+  // State to track password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -62,12 +64,32 @@ function Login() {
           onChange={(e) => setUsername(e.target.value)}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {/* Password Wrapper for Positioning the Toggle */}
+        <div style={{ position: "relative", width: "100%" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ width: "100%", paddingRight: "55px" }} // paddingRight leaves room so text doesn't overlap the button
+          />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: "15px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer",
+              color: "#a0a0a0",
+              fontSize: "0.85rem",
+              userSelect: "none",
+              fontWeight: "500"
+            }}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </span>
+        </div>
 
         <div className="role-selection">
           <label>
