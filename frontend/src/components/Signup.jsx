@@ -8,18 +8,13 @@ function Signup() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
-  
-  // State to track password visibility
   const [showPassword, setShowPassword] = useState(false);
-  
-  // States to handle the interactive custom username prompt
   const [googleCredential, setGoogleCredential] = useState(null);
   const [showUsernameForm, setShowUsernameForm] = useState(false);
   const [customUsername, setCustomUsername] = useState("");
 
   const navigate = useNavigate(); 
 
-  // Standard username/password registration form handler
   const handleSignup = async () => {
     try {
       const response = await axios.post(
@@ -27,14 +22,14 @@ function Signup() {
         { username, password, role }
       );
       alert(response.data.message);
-      navigate("/"); 
+      navigate("/"); // Directs manual form signup over to login cleanly
     } catch (error) {
       console.error("Signup error context:", error);
-      alert("Registration failed.");
+      const errorMsg = error.response?.data?.error || "Registration failed.";
+      alert(errorMsg);
     }
   };
 
-  // Submits the custom username chosen during the Google authentication step
   const handleCustomUsernameSubmit = async () => {
     if (!customUsername.trim()) {
       alert("Please enter a valid username.");
@@ -44,7 +39,6 @@ function Signup() {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    // Initial verification check to see if account exists or needs a username
     await completeGoogleAuth(credentialResponse.credential, null);
   };
 
@@ -57,22 +51,34 @@ function Signup() {
       });
 
       if (response.data.action === "require_username") {
-        // Stop and prompt for a custom username
         setGoogleCredential(tokenString);
         setShowUsernameForm(true);
         return;
       }
 
-      // Save tokens to browser local storage
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
       
-      // Save the correct display role to local storage before navigating
       const displayRole = role === "user" ? "Member" : "Trainer";
       localStorage.setItem("user_role", displayRole);
 
-      alert(response.data.action === "signup" ? "Account created successfully!" : "Welcome back!");
-      navigate("/profile");
+      if (response.data.action === "signup") {
+        alert("Account setup complete!");
+        // If a brand new Member signs up via Google, send them to onboarding!
+        if (role === "user") {
+          navigate("/onboarding");
+        } else {
+          navigate("/profile");
+        }
+      } else {
+        // Fallback flag check for existing profiles using social sign up elements
+        alert("Welcome back!");
+        if (role === "user" && response.data.require_onboarding === true) {
+          navigate("/onboarding");
+        } else {
+          navigate("/profile");
+        }
+      }
     } catch (error) {
       console.error("Backend Google Auth Error:", error);
       let detailedError = error.response?.data?.error || error.message;
@@ -86,7 +92,6 @@ function Signup() {
         <h1>Fit<span>Track</span><div className="pulse-dot"></div></h1>
         <p className="subtitle">Train Hard. Stay Consistent.</p>
 
-        {/* Conditional custom username onboarding view */}
         {showUsernameForm ? (
           <div style={{ animation: "fadeIn 0.3s ease", margin: "20px 0" }}>
             <p style={{ color: "#94a3b8", fontSize: "14px", marginBottom: "15px" }}>
@@ -110,7 +115,6 @@ function Signup() {
             </button>
           </div>
         ) : (
-          /* Main registration card layout fields */
           <>
             <input
               type="text"
@@ -119,14 +123,13 @@ function Signup() {
               onChange={(e) => setUsername(e.target.value)}
             />
 
-            {/* Password Wrapper for Positioning the Toggle */}
             <div style={{ position: "relative", width: "100%" }}>
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ width: "100%", paddingRight: "55px" }} // Stops text from stretching behind the button
+                style={{ width: "100%", paddingRight: "55px" }}
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
@@ -169,7 +172,7 @@ function Signup() {
               </label>
             </div>
 
-            <div className="google-container">
+            <div className="google-container" style={{ marginTop: "16px" }}>
               <p className="google-divider">Or continue with Google</p>
               <GoogleLogin
                 onSuccess={handleGoogleSuccess} 
@@ -177,7 +180,7 @@ function Signup() {
               />
             </div>
 
-            <button onClick={handleSignup}>Signup</button>
+            <button onClick={handleSignup} style={{ marginTop: "20px" }}>Signup</button>
           </>
         )}
 

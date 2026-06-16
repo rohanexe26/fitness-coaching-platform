@@ -8,24 +8,35 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
-  // State to track password visibility
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      // Passes username, password, and the active screen role toggle selection state
+      // FIX: Changed endpoint to /api/custom-login/ to use your custom Django view logic
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/token/",
+        "http://127.0.0.1:8000/api/custom-login/",
         { username, password, role }
       );
 
+      // 1. Store session security tokens
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
-      navigate("/profile");
+      
+      const displayRole = role === "user" ? "Member" : "Trainer";
+      localStorage.setItem("user_role", displayRole);
+
+      // 2. INTERCEPT AND EVALUATE ONBOARDING STATUS
+      if (response.data.require_onboarding === true) {
+        alert("Logged in! Let's complete your health onboarding profile.");
+        navigate("/onboarding");
+      } else {
+        navigate("/profile");
+      }
+
     } catch (error) {
-      // Reveals specific strict role rejection errors coming from Django
+      // Cleanly extracts the dynamic validation errors sent back by your backend
       const errorMsg = error.response?.data?.error || "Login Failed. Invalid credentials.";
       alert(errorMsg);
       console.log(error.response?.data);
@@ -41,9 +52,29 @@ function Login() {
 
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
+      
+      const displayRole = role === "user" ? "Member" : "Trainer";
+      localStorage.setItem("user_role", displayRole);
 
-      alert("Google Login Successful!");
-      navigate("/profile");
+      // Check if it's a completely new signup profile via Google
+      if (response.data.action === "signup") {
+        alert("Google Registration Successful!");
+        if (role === "user") {
+          navigate("/onboarding");
+        } else {
+          navigate("/profile");
+        }
+        return;
+      }
+
+      // If it's an existing login, verify if their metrics are missing
+      alert("Welcome back via Google!");
+      if (role === "user" && response.data.require_onboarding === true) {
+        navigate("/onboarding");
+      } else {
+        navigate("/profile");
+      }
+      
     } catch (error) {
       console.error("Backend Google Auth Error:", error);
       const errorMsg = error.response?.data?.error || error.message;
@@ -64,14 +95,13 @@ function Login() {
           onChange={(e) => setUsername(e.target.value)}
         />
 
-        {/* Password Wrapper for Positioning the Toggle */}
         <div style={{ position: "relative", width: "100%" }}>
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ width: "100%", paddingRight: "55px" }} // paddingRight leaves room so text doesn't overlap the button
+            style={{ width: "100%", paddingRight: "55px" }}
           />
           <span
             onClick={() => setShowPassword(!showPassword)}
