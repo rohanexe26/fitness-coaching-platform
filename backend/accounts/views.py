@@ -7,8 +7,10 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from datetime import datetime
-from .models import UserProfile
+from datetime import datetime, date
+from django.db.models import Sum
+from django.utils import timezone
+from .models import UserProfile, CardioSession, MealLog
 
 # Helper function to assign a user to a group safely
 def assign_user_role(user, role_name):
@@ -262,16 +264,26 @@ def dashboard(request):
     }
     
     if role_string == "Member":
+        today = timezone.now().date()
+        
+        # Aggregate true database dynamic totals for calories consumed vs calories actively burned today
+        calories_consumed_db = MealLog.objects.filter(user=user, created_at__date=today).aggregate(Sum('calories'))['calories__sum'] or 0
+        protein_consumed_db = MealLog.objects.filter(user=user, created_at__date=today).aggregate(Sum('protein'))['protein__sum'] or 0
+        calories_burned_db = CardioSession.objects.filter(user=user, created_at__date=today).aggregate(Sum('calories'))['calories__sum'] or 0
+        
         macros = getattr(profile, 'calculated_macros', {"calories": 2000, "protein": 140})
         goal_titles = {
             'slim': "High-Intensity Functional Metabolic Cond.",
             'gain': "Progressive Overload Muscle Hypertrophy Layout",
             'maintain': "Standard Dynamic Balance Maintenance Split"
         }
+        
         data["metrics"] = {
-            "calories_consumed": 0, 
+            "calories_consumed": calories_consumed_db, 
+            "calories_burned": calories_burned_db,
+            "net_calories": calories_consumed_db - calories_burned_db,
             "calorie_goal": macros.get("calories", 2000),
-            "protein_consumed": 0,
+            "protein_consumed": protein_consumed_db,
             "protein_goal": macros.get("protein", 140),
             "consistency_streak": 5, 
             "bmi": getattr(profile, 'bmi', 0),
@@ -387,3 +399,55 @@ def google_auth(request):
         return Response({'error': 'Invalid Google token'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# 9. LOG CARDIO SESSION ENDPOINT
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def log_cardio(request):
+    activity_type = request.data.get('activity_type', 'RUN').upper()
+    duration_seconds = request.data.get('duration_seconds')
+    distance_km = request.data.get('distance_km', 0.0)
+    calories_burned = request.data.get('calories_burned')
+
+    if not duration_seconds or not calories_burned:
+        return Response({'error': 'Duration and calories burned metrics are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        session = CardioSession.objects.create(
+            user=request.user,
+            activity_type=activity_type,
+            duration_seconds=int(duration_seconds),
+            distance_km=float(distance_km),
+            calories_burned=int(calories_burned)
+        )
+        return Response({'message': 'Cardio metrics tracked and recorded successfully.', 'id': session.id}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'error': f'Failed to write metrics data log: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 10. LOG NUTRITIONAL MEAL LOG ENDPOINT
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def log_meal(request):
+    name = request.data.get('name')
+    calories = request.data.get('calories')
+    protein = request.data.get('protein', 0)
+    carbs = request.data.get('carbs', 0)
+    fats = request.data.get('fats', 0)
+
+    if not name or not calories:
+        return Response({'error': 'Meal name and caloric volume values are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        meal = MealLog.objects.create(
+            user=request.user,
+            name=name.strip(),
+            calories=int(calories),
+            protein=int(protein),
+            carbs=int(carbs),
+            fats=int(fats)
+        )
+        return Response({'message': 'Nutritional logging saved perfectly.', 'id': meal.id}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'error': f'Failed to add record to log sheet: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)

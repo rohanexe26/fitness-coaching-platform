@@ -145,3 +145,34 @@ class UserProfile(models.Model):
             "calories": round(target_calories),
             "protein": round(target_protein)
         }
+
+
+class CardioSession(models.Model):
+    class CardioType(models.TextChoices):
+        RUN = 'RUN', 'Running'
+        CYCLE = 'CYCLE', 'Cycling'
+        WALK = 'WALK', 'Walking'
+        ELLIPTICAL = 'ELLIPTICAL', 'Elliptical'
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cardio_sessions')
+    activity_type = models.CharField(max_length=20, choices=CardioType.choices, default=CardioType.RUN)
+    duration_seconds = models.IntegerField(help_text="Duration of activity in seconds")
+    distance_km = models.FloatField(default=0.0, help_text="Distance covered in kilometers")
+    calories_burned = models.IntegerField(help_text="Calculated calorie expenditure")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_activity_type_display()} ({self.calories_burned} kcal)"
+
+
+class MealLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meal_logs')
+    name = models.CharField(max_length=100, help_text="e.g., Oats, Whey Protein & Banana")
+    calories = models.IntegerField()
+    protein = models.IntegerField(default=0)
+    carbs = models.IntegerField(default=0)
+    fats = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name} ({self.calories} kcal)"
